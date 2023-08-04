@@ -18,7 +18,7 @@ const (
 	ExternalBackup     = "EXTERNAL_BACKUP"
 	ExternalBackupPath = "EXTERNAL_BACKUP_PATH"
 	User               = "backupper"
-	Group              = "backup"
+	Group              = "backupp"
 	Path               = "/backup/"
 )
 
@@ -56,7 +56,15 @@ func main() {
 		re := regexp.MustCompile(`^(\*|([0-9]|1[0-9]|2[0-9]|3[0-9]|4[0-9]|5[0-9])|\*\/([0-9]|1[0-9]|2[0-9]|3[0-9]|4[0-9]|5[0-9])) (\*|([0-9]|1[0-9]|2[0-3])|\*\/([0-9]|1[0-9]|2[0-3])) (\*|([1-9]|1[0-9]|2[0-9]|3[0-1])|\*\/([1-9]|1[0-9]|2[0-9]|3[0-1])) (\*|([1-9]|1[0-2])|\*\/([1-9]|1[0-2])) (\*|([0-6])|\*\/([0-6]))$`)
 		if re.MatchString(interval) {
 			fmt.Println("Starting cron with interval: " + interval)
-			s := gocron.NewScheduler(time.Local)
+			timezone := os.Getenv("TZ")
+			if timezone == "" {
+				timezone = "UTC"
+			}
+			loc, err := time.LoadLocation(timezone)
+			if err != nil {
+				loc = time.Local
+			}
+			s := gocron.NewScheduler(loc)
 			s.Cron(interval).Do(runBackup)
 			s.StartBlocking()
 		} else {
