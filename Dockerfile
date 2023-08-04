@@ -1,4 +1,4 @@
-FROM golang:1.20-alpine as build
+FROM golang:1.20 as build
 WORKDIR /app
 
 COPY go.mod go.sum .
@@ -8,13 +8,13 @@ COPY main.go .
 RUN go build -o ./backup .
 
 
-FROM alpine
+FROM debian:12-slim
 
-RUN addgroup --system --gid 1001 backup && adduser --system --uid 1001 backupper
+RUN groupadd -g 1001 backupp && useradd -mG backupp -u 1001 backupper
+
+RUN apt update -y && apt install --no-install-recommends -y postgresql-client ca-certificates tzdata && rm -rf /var/lib/{apt,dpkg,cache,log}/
 
 COPY --from=build /app/backup /db-backup
-
-RUN apk add --no-cache postgresql-client ca-certificates tzdata && rm -rf /var/cache/apk/*
 
 VOLUME ["/backup"]
 
