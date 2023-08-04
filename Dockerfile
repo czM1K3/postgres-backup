@@ -12,7 +12,7 @@ FROM debian:12-slim
 
 RUN groupadd -g 1001 backupp && useradd -mG backupp -u 1001 backupper
 
-RUN apt update -y && apt install --no-install-recommends -y postgresql-client ca-certificates tzdata && rm -rf /var/lib/{apt,dpkg,cache,log}/
+RUN apt update -y && apt install --no-install-recommends -y postgresql-client ca-certificates tzdata rclone && rm -rf /var/lib/{apt,dpkg,cache,log}/
 
 COPY --from=build /app/backup /db-backup
 
