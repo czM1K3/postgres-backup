@@ -100,7 +100,7 @@ func getLocation() time.Location {
 		timezone = "UTC"
 	}
 	loc, err := time.LoadLocation(timezone)
-	if err == nil {
+	if err != nil {
 		return *time.Local
 	} else {
 		return *loc
