@@ -25,7 +25,7 @@ func main() {
 		log.Fatalln(PostgreSQLURI + " is not defined")
 		return
 	}
-	if _, err := os.Stat("/home/" + User + "/.config/rclone/rclone.conf"); err == nil {
+	if _, err := os.Stat("/home/" + User + "/.config/rclone/rclone.conf"); err != nil {
 		permissionCmd1 := exec.Command("chown", User+":"+Group, "/home/"+User+"/.config/rclone/rclone.conf")
 		permissionCmd1.Stdin = os.Stdin
 		permissionCmd1.Stdout = os.Stdout
@@ -36,13 +36,12 @@ func main() {
 		permissionCmd2.Stdout = os.Stdout
 		permissionCmd2.Stderr = os.Stderr
 		permissionCmd2.Run()
+		permissionCmd3 := exec.Command("chown", User+":"+Group, "/home/"+User+"/.config/rclone")
+		permissionCmd3.Stdin = os.Stdin
+		permissionCmd3.Stdout = os.Stdout
+		permissionCmd3.Stderr = os.Stderr
+		permissionCmd3.Run()
 	}
-
-	permissionCmd := exec.Command("chown", User+":"+Group, "/home/"+User+"/.config/rclone")
-	permissionCmd.Stdin = os.Stdin
-	permissionCmd.Stdout = os.Stdout
-	permissionCmd.Stderr = os.Stderr
-	permissionCmd.Run()
 
 	dumpCmd := exec.Command("chown", User+":"+Group, Path)
 	dumpCmd.Stdin = os.Stdin
