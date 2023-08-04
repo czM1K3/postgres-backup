@@ -38,6 +38,12 @@ func main() {
 		permissionCmd2.Run()
 	}
 
+	permissionCmd := exec.Command("chown", User+":"+Group, "/home/"+User+"/.config/rclone")
+	permissionCmd.Stdin = os.Stdin
+	permissionCmd.Stdout = os.Stdout
+	permissionCmd.Stderr = os.Stderr
+	permissionCmd.Run()
+
 	dumpCmd := exec.Command("chown", User+":"+Group, Path)
 	dumpCmd.Stdin = os.Stdin
 	dumpCmd.Stdout = os.Stdout
