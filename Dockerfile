@@ -10,6 +10,8 @@ RUN go build -o ./backup .
 
 FROM alpine
 
+RUN addgroup --system --gid 1001 backup && adduser --system --uid 1001 backupper
+
 COPY --from=build /app/backup /db-backup
 
 RUN apk add --no-cache postgresql-client ca-certificates && rm -rf /var/cache/apk/*
