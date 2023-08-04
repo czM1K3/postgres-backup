@@ -38,12 +38,6 @@ func main() {
 		permissionCmd2.Run()
 	}
 
-	permissionCmd := exec.Command("chown", User+":"+Group, Path)
-	permissionCmd.Stdin = os.Stdin
-	permissionCmd.Stdout = os.Stdout
-	permissionCmd.Stderr = os.Stderr
-	permissionCmd.Run()
-
 	dumpCmd := exec.Command("chown", User+":"+Group, Path)
 	dumpCmd.Stdin = os.Stdin
 	dumpCmd.Stdout = os.Stdout
@@ -55,15 +49,8 @@ func main() {
 		re := regexp.MustCompile(`^(\*|([0-9]|1[0-9]|2[0-9]|3[0-9]|4[0-9]|5[0-9])|\*\/([0-9]|1[0-9]|2[0-9]|3[0-9]|4[0-9]|5[0-9])) (\*|([0-9]|1[0-9]|2[0-3])|\*\/([0-9]|1[0-9]|2[0-3])) (\*|([1-9]|1[0-9]|2[0-9]|3[0-1])|\*\/([1-9]|1[0-9]|2[0-9]|3[0-1])) (\*|([1-9]|1[0-2])|\*\/([1-9]|1[0-2])) (\*|([0-6])|\*\/([0-6]))$`)
 		if re.MatchString(interval) {
 			fmt.Println("Starting cron with interval: " + interval)
-			timezone := os.Getenv("TZ")
-			if timezone == "" {
-				timezone = "UTC"
-			}
-			loc, err := time.LoadLocation(timezone)
-			if err != nil {
-				loc = time.Local
-			}
-			s := gocron.NewScheduler(loc)
+			loc := getLocation()
+			s := gocron.NewScheduler(&loc)
 			s.Cron(interval).Do(runBackup)
 			s.StartBlocking()
 		} else {
@@ -75,12 +62,9 @@ func main() {
 }
 
 func runBackup() {
-	timezone := os.Getenv("TZ")
-	if timezone == "" {
-		timezone = "UTC"
-	}
-	loc, _ := time.LoadLocation(timezone)
-	time := time.Now().In(loc)
+	loc := getLocation()
+	time := time.Now().In(&loc)
+	fmt.Printf("Starting backup at %s\n", time.String())
 
 	filename := "backup-" + time.Format("01-02-2006-15-04-05") + ".sql"
 
@@ -93,10 +77,26 @@ func runBackup() {
 
 	externalPath := os.Getenv(ExternalBackupPath)
 	if externalPath != "" {
+		fmt.Println("Sending backup with rclone")
 		backupCmd := exec.Command("runuser", "-u", User, "--", "bash", "-c", fmt.Sprintf("rclone copy %s%s remote:%s", Path, filename, externalPath))
 		backupCmd.Stdin = os.Stdin
 		backupCmd.Stdout = os.Stdout
 		backupCmd.Stderr = os.Stderr
 		backupCmd.Run()
+		fmt.Println("Finished sending backup")
+	}
+	fmt.Println("Exiting backup")
+}
+
+func getLocation() time.Location {
+	timezone := os.Getenv("TZ")
+	if timezone == "" {
+		timezone = "UTC"
+	}
+	loc, err := time.LoadLocation(timezone)
+	if err == nil {
+		return *time.Local
+	} else {
+		return *loc
 	}
 }
