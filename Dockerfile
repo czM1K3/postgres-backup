@@ -5,7 +5,7 @@ COPY go.mod go.sum .
 RUN go mod download
 
 COPY main.go .
-RUN go main -o ./backup .
+RUN go build -o ./backup .
 
 
 FROM alpine
