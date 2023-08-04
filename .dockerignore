@@ -1,0 +1,5 @@
+README.md
+out/*
+Dockerfile
+.dockerignore
+.gitignore
