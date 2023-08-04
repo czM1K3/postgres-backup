@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/base64"
 	"fmt"
 	"log"
 	"os"
@@ -15,7 +14,6 @@ import (
 const (
 	PostgreSQLURI      = "POSTGRESQL_URI"
 	CronInterval       = "CRON_INTERVAL"
-	ExternalBackup     = "EXTERNAL_BACKUP"
 	ExternalBackupPath = "EXTERNAL_BACKUP_PATH"
 	User               = "backupper"
 	Group              = "backupp"
@@ -27,23 +25,24 @@ func main() {
 		log.Fatalln(PostgreSQLURI + " is not defined")
 		return
 	}
-	externalBackup := os.Getenv(ExternalBackup)
-	if externalBackup != "" {
-		decoded, err := base64.StdEncoding.DecodeString(externalBackup)
-		if err == nil {
-			mkdirCmd := exec.Command("runuser", "-u", User, "--", "bash", "-c", "mkdir -p /home/"+User+"/.config/rclone")
-			mkdirCmd.Stdin = os.Stdin
-			mkdirCmd.Stdout = os.Stdout
-			mkdirCmd.Stderr = os.Stderr
-			mkdirCmd.Run()
-			os.WriteFile(fmt.Sprintf("/home/%s/.config/rclone/rclone.conf", User), decoded, 0644)
-			permissionCmd := exec.Command("runuser", "-u", User, "--", "bash", "-c", fmt.Sprintf("chown %s:%s /home/%s/.config/rclone/rclone.conf && chmod 644 /home/%s/.config/rclone/rclone.conf", User, Group, User, User))
-			permissionCmd.Stdin = os.Stdin
-			permissionCmd.Stdout = os.Stdout
-			permissionCmd.Stderr = os.Stderr
-			permissionCmd.Run()
-		}
+	if _, err := os.Stat("/home/" + User + "/.config/rclone/rclone.conf"); err == nil {
+		permissionCmd1 := exec.Command("chown", User+":"+Group, "/home/"+User+"/.config/rclone/rclone.conf")
+		permissionCmd1.Stdin = os.Stdin
+		permissionCmd1.Stdout = os.Stdout
+		permissionCmd1.Stderr = os.Stderr
+		permissionCmd1.Run()
+		permissionCmd2 := exec.Command("chmod", "644", "/home/"+User+"/.config/rclone/rclone.conf")
+		permissionCmd2.Stdin = os.Stdin
+		permissionCmd2.Stdout = os.Stdout
+		permissionCmd2.Stderr = os.Stderr
+		permissionCmd2.Run()
 	}
+
+	permissionCmd := exec.Command("chown", User+":"+Group, Path)
+	permissionCmd.Stdin = os.Stdin
+	permissionCmd.Stdout = os.Stdout
+	permissionCmd.Stderr = os.Stderr
+	permissionCmd.Run()
 
 	dumpCmd := exec.Command("chown", User+":"+Group, Path)
 	dumpCmd.Stdin = os.Stdin
