@@ -14,7 +14,7 @@ RUN addgroup --system --gid 1001 backup && adduser --system --uid 1001 backupper
 
 COPY --from=build /app/backup /db-backup
 
-RUN apk add --no-cache postgresql-client ca-certificates && rm -rf /var/cache/apk/*
+RUN apk add --no-cache postgresql-client ca-certificates tzdata && rm -rf /var/cache/apk/*
 
 VOLUME ["/backup"]
 
